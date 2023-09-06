@@ -7,7 +7,8 @@
 public Plugin myinfo =
 {
   name = "Shooting Gallery Aimbot",
-  author = "ijre"
+  author = "ijre",
+  version = "1.0.1"
 }
 
 #define FloatVecToPrintable(%1) %1[0], %1[1], %1[2]
@@ -164,7 +165,8 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     GetAbsOrigin(TargetIndices[i][PROP_INDEX], targetPos, true);
     GetEntPropVector(TargetIndices[i][ROTATOR_INDEX], Prop_Send, "m_angRotation", targetRotatorRot);
 
-    if (targetPos[2] < 0.0 || targetRotatorRot[0] == 90.0) // the gallery has object pooling for inactive targets setup underneath the map
+    // the gallery has object pooling for inactive targets setup underneath the map, and an x rot of 0.0 means they're standing up
+    if (targetPos[2] < 0.0 || targetRotatorRot[0] != 0.0)
     {
       continue;
     }
