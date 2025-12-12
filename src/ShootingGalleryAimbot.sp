@@ -2,7 +2,7 @@
 #include <sdkhooks>
 #include <sdktools>
 #include <left4dhooks>
-// #include "C:/Users/User1/source/repos/# shared notes tf2-l4d2/PrintToChatAllLog.sp"
+#include "C:/Users/Paige/source/repos/# shared notes source/PrintToChatAllLog.sp"
 
 public Plugin myinfo =
 {
@@ -29,6 +29,8 @@ public void OnMapStart()
 {
   SilentAim = CreateConVar("sm_galleryaimbot_silentaim", "1", "Whether or not the aimbot snaps the player's viewangles to the target (1 for no)", FCVAR_NOTIFY);
 
+  RegAdminCmd("sm_dumpents", dumpents, ADMFLAG_ROOT);
+
   char map[192];
   GetCurrentMap(map, sizeof(map));
   if (!!strncmp(map, "c2m2", 4))
@@ -41,6 +43,44 @@ public void OnMapStart()
     ServerCommand("sm plugins unload %s", name);
   }
 
+  HookEvent("round_freeze_end", OnRoundStart);
+  HookEvent("mission_lost", OnFailure);
+
+  FindTargetIndicies();
+}
+
+Action dumpents(int client, int args)
+{
+  PrintToChatAllLog("\nSTART BUTTON: %d", UseButtonIndex);
+  PrintToChatAllLog("PEANUT: %d ~~ %d", TargetIndices[PEANUT][PROP_INDEX], TargetIndices[PEANUT][ROTATOR_INDEX]);
+  PrintToChatAllLog("MOUSTACHIO: %d ~~ %d", TargetIndices[MOUSTACHIO][PROP_INDEX], TargetIndices[MOUSTACHIO][ROTATOR_INDEX]);
+
+  for (int targ = MOUSTACHIO + 1; targ < TARGETS_TOTAL; targ++)
+  {
+    PrintToChatAllLog("SKELE %d: %d ~~ %d", targ - 1, TargetIndices[targ][PROP_INDEX], TargetIndices[targ][ROTATOR_INDEX]);
+  }
+
+  return Plugin_Handled;
+}
+
+void OnRoundStart(Event event, const char[] name, bool dontBroadcast)
+{
+  FindTargetIndicies();
+}
+
+void OnFailure(Event event, const char[] name, bool dontBroadcast)
+{
+  UseButtonIndex = 0;
+
+  for (int targ = 0; targ < TARGETS_TOTAL; targ++)
+  {
+    TargetIndices[targ][PROP_INDEX] = 0;
+    TargetIndices[targ][ROTATOR_INDEX] = 0;
+  }
+}
+
+static void FindTargetIndicies()
+{
   int ent = -1;
   while ((ent = FindEntityByClassname(ent, "func_button")) != -1)
   {
@@ -75,6 +115,12 @@ public void OnMapStart()
     else if (StrContains(model, "skeleton.mdl") != -1)
     {
       static int skeleDex = MOUSTACHIO + 1;
+
+      if (skeleDex == TARGETS_TOTAL)
+      {
+        skeleDex = MOUSTACHIO + 1;
+      }
+
       TargetIndices[skeleDex++][PROP_INDEX] = ent;
     }
   }
@@ -128,27 +174,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     return Plugin_Continue;
   }
 
-  if (!IsValidEntity(UseButtonIndex))
-  {
-    char invalidEnts[192];
-    invalidEnts = "Invalid ents at %d (UseButtonIndex)";
-
-    for (int i = 0; i < TARGETS_TOTAL; i++)
-    {
-      if (IsValidEntity(TargetIndices[i][PROP_INDEX]))
-      {
-        continue;
-      }
-
-      char invalidEntTargets[192];
-      Format(invalidEntTargets, sizeof(invalidEntTargets), ", %d (TargetIndices[%d][PROP_INDEX])", TargetIndices[i][PROP_INDEX], i);
-      StrCat(invalidEnts, sizeof(invalidEnts), invalidEntTargets);
-    }
-
-    ThrowError(invalidEnts, UseButtonIndex);
-  }
-
-  if (!GetEntProp(UseButtonIndex, Prop_Data, "m_bLocked")) // unlocked means the game hasn't started
+  if (!UseButtonIndex || !GetEntProp(UseButtonIndex, Prop_Data, "m_bLocked")) // unlocked means the game hasn't started
   {
     return Plugin_Continue;
   }
