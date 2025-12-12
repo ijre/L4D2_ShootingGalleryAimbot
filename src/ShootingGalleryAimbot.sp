@@ -33,7 +33,12 @@ public void OnMapStart()
   GetCurrentMap(map, sizeof(map));
   if (!!strncmp(map, "c2m2", 4))
   {
-    SetFailState("Incorrect map, stopping plugin.");
+    // doing this instead of AskPluginLoad2 because APLRes_SilentFailure still appends to/creates error logs
+    LogMessage("Incorrect map, stopping plugin.");
+
+    char name[192];
+    GetPluginFilename(INVALID_HANDLE, name, sizeof(name));
+    ServerCommand("sm plugins unload %s", name);
   }
 
   int ent = -1;
