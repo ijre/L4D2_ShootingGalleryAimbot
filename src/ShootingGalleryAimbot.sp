@@ -1,7 +1,6 @@
 #include <sourcemod>
 #include <sdkhooks>
 #include <sdktools>
-#include <left4dhooks>
 #define DEFAULT_DEBUG 0
 #tryinclude <SetupDebugMacros.sp>
 #tryinclude <PrintToChatAllLog.sp>
@@ -171,7 +170,7 @@ static void FindTargetIndicies()
 
 public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3], float cmdAngs[3])
 {
-  if (!IsClientConnected(client) || !IsPlayerAlive(client) || IsFakeClient(client) || L4D_GetClientTeam(client) != L4DTeam_Survivor)
+  if (!IsClientConnected(client) || !IsPlayerAlive(client) || IsFakeClient(client) || GetClientTeam(client) != 2)
   {
     return Plugin_Continue;
   }
@@ -182,7 +181,11 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
   }
 
   int wep = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
-  if (wep == -1 || (wep != GetPlayerWeaponSlot(client, 0) && wep != GetPlayerWeaponSlot(client, 1)) || L4D2_GetWeaponId(wep) == L4D2WeaponId_Melee
+  char cName[20];
+  GetEntityClassname(wep, cName, sizeof(cName));
+
+  if (wep == -1 || (wep != GetPlayerWeaponSlot(client, 0) && wep != GetPlayerWeaponSlot(client, 1))
+      || !strncmp(cName[7], "weapon_melee", 5) || !strncmp(cName[7], "weapon_chainsaw", 8)
       || GetEntPropFloat(wep, Prop_Send, "m_flNextPrimaryAttack") > GetGameTime())
   {
     return Plugin_Continue;
@@ -195,7 +198,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
   {
     float targetPos[3];
     float targetRotatorRot[3];
-    GetAbsOrigin(TargetIndices[i][PROP_INDEX], targetPos, true);
+    GetCenterOfEntity(TargetIndices[i][PROP_INDEX], targetPos);
     GetEntPropVector(TargetIndices[i][ROTATOR_INDEX], Prop_Send, "m_angRotation", targetRotatorRot);
 
     // the gallery has object pooling for inactive targets setup underneath the map, and an x rot of 0.0 means they're standing up
@@ -232,4 +235,17 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
 bool CheckForLOS(int ent, int mask, int target)
 {
   return ent == target;
+}
+
+void GetCenterOfEntity(int ent, float output[3])
+{
+  GetEntPropVector(ent, Prop_Data, "m_vecAbsOrigin", output);
+
+  float temp[2][3];
+  GetEntPropVector(ent, Prop_Send, "m_vecMins", temp[0]);
+  GetEntPropVector(ent, Prop_Send, "m_vecMaxs", temp[1]);
+
+  output[0] += (temp[0][0] + temp[1][0]) * 0.5;
+  output[1] += (temp[0][1] + temp[1][1]) * 0.5;
+  output[2] += (temp[0][2] + temp[1][2]) * 0.5;
 }
