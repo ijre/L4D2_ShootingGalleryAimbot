@@ -2,7 +2,9 @@
 #include <sdkhooks>
 #include <sdktools>
 #include <left4dhooks>
-#include "C:/Users/Paige/source/repos/# shared notes source/PrintToChatAllLog.sp"
+#define DEFAULT_DEBUG 0
+#tryinclude <SetupDebugMacros.sp>
+#tryinclude <PrintToChatAllLog.sp>
 
 public Plugin myinfo =
 {
