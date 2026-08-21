@@ -30,7 +30,9 @@ public void OnMapStart()
 {
   SilentAim = CreateConVar("sm_galleryaimbot_silentaim", "1", "Whether or not the aimbot snaps the player's viewangles to the target (1 for no)", FCVAR_NOTIFY);
 
+#if DEBUG
   RegAdminCmd("sm_dumpents", dumpents, ADMFLAG_ROOT);
+#endif
 
   char map[192];
   GetCurrentMap(map, sizeof(map));
@@ -50,6 +52,7 @@ public void OnMapStart()
   FindTargetIndicies();
 }
 
+#if DEBUG
 Action dumpents(int client, int args)
 {
   PrintToChatAllLog("\nSTART BUTTON: %d", UseButtonIndex);
@@ -63,6 +66,7 @@ Action dumpents(int client, int args)
 
   return Plugin_Handled;
 }
+#endif
 
 void OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
@@ -194,7 +198,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
   float eyePos[3];
   GetClientEyePosition(client, eyePos);
 
-  for (int i = 1; i < TARGETS_TOTAL; i++)
+  for (int i = PEANUT + 1; i < TARGETS_TOTAL; i++)
   {
     float targetPos[3];
     float targetRotatorRot[3];
