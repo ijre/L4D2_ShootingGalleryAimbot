@@ -24,11 +24,13 @@ static int MusicLoopIndex;
 
 static int TargetIndices[TARGETS_TOTAL][2];
 
-ConVar SilentAim;
+static ConVar SilentAim;
+static ConVar AvoidPeanut;
 
 public void OnMapStart()
 {
   SilentAim = CreateConVar("sm_galleryaimbot_silentaim", "1", "Whether or not the aimbot snaps the player's viewangles to the target (1 for no)", FCVAR_NOTIFY);
+  AvoidPeanut = CreateConVar("sm_galleryaimbot_avoid_peanut", "1", "Whether or not to avoid shooting a target if Peanut would be hit. (0 to shoot anyway)", FCVAR_NOTIFY);
 
 #if DEBUG
   RegAdminCmd("sm_dumpents", dumpents, ADMFLAG_ROOT);
@@ -50,6 +52,8 @@ public void OnMapStart()
   HookEvent("mission_lost", OnFailure);
 
   FindTargetIndicies();
+
+  AutoExecConfig(true, "ShootingGalleryAimbot");
 }
 
 #if DEBUG
@@ -215,7 +219,8 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     MakeVectorFromPoints(eyePos, targetPos, newAngs);
     GetVectorAngles(newAngs, newAngs);
 
-    TR_TraceRayFilter(eyePos, newAngs, CONTENTS_SOLID, RayType_Infinite, CheckForLOS, TargetIndices[i][PROP_INDEX]);
+    TR_TraceRayFilter(eyePos, newAngs, MASK_SHOT, RayType_Infinite, CheckForLOS, TargetIndices[i][PROP_INDEX]);
+
     if (TR_GetEntityIndex() != TargetIndices[i][PROP_INDEX])
     {
       continue;
@@ -236,12 +241,33 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
   return Plugin_Continue;
 }
 
-bool CheckForLOS(int ent, int mask, int target)
+// #region Helpers
+// #region Filters
+stock bool CheckForLOS(int ent, int mask, int target)
 {
-  return ent == target;
-}
+  if (ent != target)
+  {
+    return false;
+  }
 
-void GetCenterOfEntity(int ent, float output[3])
+  if (AvoidPeanut.BoolValue)
+  {
+    Handle extraTrace = TR_ClipCurrentRayToEntityEx(MASK_SHOT, TargetIndices[PEANUT][PROP_INDEX]);
+
+    if (TR_DidHit(extraTrace))
+    {
+      delete extraTrace;
+      return false;
+    }
+
+    delete extraTrace;
+  }
+
+  return true;
+}
+// #endregion
+
+stock void GetCenterOfEntity(int ent, float output[3])
 {
   GetEntPropVector(ent, Prop_Data, "m_vecAbsOrigin", output);
 
@@ -253,3 +279,4 @@ void GetCenterOfEntity(int ent, float output[3])
   output[1] += (temp[0][1] + temp[1][1]) * 0.5;
   output[2] += (temp[0][2] + temp[1][2]) * 0.5;
 }
+// #endregion
