@@ -9,7 +9,7 @@ public Plugin myinfo =
 {
   name = "Shooting Gallery Aimbot",
   author = "ijre",
-  version = "1.1.0"
+  version = "1.2.0"
 }
 
 #define FloatVecToPrintable(%1) %1[0], %1[1], %1[2]
