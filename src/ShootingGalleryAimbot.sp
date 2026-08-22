@@ -14,7 +14,7 @@ public Plugin myinfo =
 
 #define FloatVecToPrintable(%1) %1[0], %1[1], %1[2]
 
-static int UseButtonIndex;
+static int MusicLoopIndex;
 
 #define PEANUT 0
 #define MOUSTACHIO 1
@@ -55,7 +55,7 @@ public void OnMapStart()
 #if DEBUG
 Action dumpents(int client, int args)
 {
-  PrintToChatAllLog("\nSTART BUTTON: %d", UseButtonIndex);
+  PrintToChatAllLog("\nMUSIC LOOP: %d", MusicLoopIndex);
   PrintToChatAllLog("PEANUT: %d ~~ %d", TargetIndices[PEANUT][PROP_INDEX], TargetIndices[PEANUT][ROTATOR_INDEX]);
   PrintToChatAllLog("MOUSTACHIO: %d ~~ %d", TargetIndices[MOUSTACHIO][PROP_INDEX], TargetIndices[MOUSTACHIO][ROTATOR_INDEX]);
 
@@ -75,7 +75,7 @@ void OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 
 void OnFailure(Event event, const char[] name, bool dontBroadcast)
 {
-  UseButtonIndex = 0;
+  MusicLoopIndex = 0;
 
   for (int targ = 0; targ < TARGETS_TOTAL; targ++)
   {
@@ -87,14 +87,14 @@ void OnFailure(Event event, const char[] name, bool dontBroadcast)
 static void FindTargetIndicies()
 {
   int ent = -1;
-  while ((ent = FindEntityByClassname(ent, "func_button")) != -1)
+  while ((ent = FindEntityByClassname(ent, "ambient_generic")) != -1)
   {
-    char name[192];
+    char name[25];
     GetEntPropString(ent, Prop_Data, "m_iName", name, sizeof(name));
 
-    if (!strncmp(name, "shootinggame_start_button", 25))
+    if (!strncmp(name, "gallery_operating_sound", 23))
     {
-      UseButtonIndex = ent;
+      MusicLoopIndex = ent;
       break;
     }
   }
@@ -102,7 +102,7 @@ static void FindTargetIndicies()
   ent = -1;
   while ((ent = FindEntityByClassname(ent, "prop_dynamic")) != -1)
   {
-    char model[192];
+    char model[55];
     GetEntPropString(ent, Prop_Data, "m_ModelName", model, sizeof(model));
     if (StrContains(model, "gallery_target") == -1)
     {
@@ -133,7 +133,7 @@ static void FindTargetIndicies()
   ent = -1;
   while ((ent = FindEntityByClassname(ent, "func_rot_button")) != -1)
   {
-    char targetName[192];
+    char targetName[25];
     GetEntPropString(ent, Prop_Data, "m_iName", targetName, sizeof(targetName));
 
     if (!strncmp(targetName, "peanut_target_1_rotator", 23))
@@ -179,7 +179,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     return Plugin_Continue;
   }
 
-  if (!UseButtonIndex || !GetEntProp(UseButtonIndex, Prop_Data, "m_bLocked")) // unlocked means the game hasn't started
+  if (!MusicLoopIndex || !GetEntProp(MusicLoopIndex, Prop_Data, "m_fActive")) // John Valve invents world's first Foolean value
   {
     return Plugin_Continue;
   }
