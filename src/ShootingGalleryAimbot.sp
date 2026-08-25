@@ -9,7 +9,7 @@ public Plugin myinfo =
 {
   name = "Shooting Gallery Aimbot",
   author = "ijre",
-  version = "1.2.0"
+  version = "1.3.0"
 }
 
 static int MusicLoopIndex;
