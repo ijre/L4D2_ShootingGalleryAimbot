@@ -12,8 +12,6 @@ public Plugin myinfo =
   version = "1.2.0"
 }
 
-#define FloatVecToPrintable(%1) %1[0], %1[1], %1[2]
-
 static int MusicLoopIndex;
 
 #define PEANUT 0
