@@ -193,7 +193,7 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
   GetEntityClassname(wep, cName, sizeof(cName));
 
   if (wep == -1 || (wep != GetPlayerWeaponSlot(client, 0) && wep != GetPlayerWeaponSlot(client, 1))
-      || !strncmp(cName[7], "weapon_melee", 5) || !strncmp(cName[7], "weapon_chainsaw", 8)
+      || !strncmp(cName[7], "melee", 5) || !strncmp(cName[7], "chainsaw", 8)
       || GetEntPropFloat(wep, Prop_Send, "m_flNextPrimaryAttack") > GetGameTime())
   {
     return Plugin_Continue;
