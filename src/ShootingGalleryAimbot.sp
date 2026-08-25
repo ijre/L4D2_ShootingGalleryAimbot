@@ -59,13 +59,13 @@ public void OnMapStart()
 #if DEBUG
 Action dumpents(int client, int args)
 {
-  PrintToChatAllLog("\nMUSIC LOOP: %d", MusicLoopIndex);
-  PrintToChatAllLog("PEANUT: %d ~~ %d", TargetIndices[PEANUT][PROP_INDEX], TargetIndices[PEANUT][ROTATOR_INDEX]);
-  PrintToChatAllLog("MOUSTACHIO: %d ~~ %d", TargetIndices[MOUSTACHIO][PROP_INDEX], TargetIndices[MOUSTACHIO][ROTATOR_INDEX]);
+  PrintToChatAllLog(false, "MUSIC LOOP: %d", MusicLoopIndex);
+  PrintToChatAllLog(false, "PEANUT: %d ~~ %d", TargetIndices[PEANUT][PROP_INDEX], TargetIndices[PEANUT][ROTATOR_INDEX]);
+  PrintToChatAllLog(false, "MOUSTACHIO: %d ~~ %d", TargetIndices[MOUSTACHIO][PROP_INDEX], TargetIndices[MOUSTACHIO][ROTATOR_INDEX]);
 
   for (int targ = MOUSTACHIO + 1; targ < TARGETS_TOTAL; targ++)
   {
-    PrintToChatAllLog("SKELE %d: %d ~~ %d", targ - 1, TargetIndices[targ][PROP_INDEX], TargetIndices[targ][ROTATOR_INDEX]);
+    PrintToChatAllLog(false, "SKELE %d: %d ~~ %d%s", targ - 1, TargetIndices[targ][PROP_INDEX], TargetIndices[targ][ROTATOR_INDEX], targ == TARGETS_TOTAL - 1 ? "\n" : "");
   }
 
   return Plugin_Handled;
