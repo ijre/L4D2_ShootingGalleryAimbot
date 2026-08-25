@@ -158,6 +158,8 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
   float eyePos[3];
   GetClientEyePosition(client, eyePos);
 
+  DataPack data = new DataPack();
+
   for (int i = PEANUT + 1; i < TARGETS_TOTAL; i++)
   {
     float targetPos[3];
@@ -175,10 +177,13 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
     MakeVectorFromPoints(eyePos, targetPos, newAngs);
     GetVectorAngles(newAngs, newAngs);
 
-    TR_TraceRayFilter(eyePos, newAngs, MASK_SHOT, RayType_Infinite, CheckForLOS, TargetIndices[i][PROP_INDEX]);
+    data.WriteCell(TargetIndices[i][PROP_INDEX]);
+    data.WriteCell(client);
+    TR_TraceRayFilter(eyePos, newAngs, MASK_SHOT, RayType_Infinite, CheckForLOS, data);
 
     if (TR_GetEntityIndex() != TargetIndices[i][PROP_INDEX])
     {
+      data.Reset(true);
       continue;
     }
 
@@ -191,16 +196,21 @@ public Action OnPlayerRunCmd(int client, int& buttons, int& impulse, float vel[3
 
     buttons |= IN_ATTACK;
 
+    delete data;
     return Plugin_Changed;
   }
 
+  delete data;
   return Plugin_Continue;
 }
 
 // #region Helpers
 // #region Filters
-stock bool CheckForLOS(int ent, int mask, int target)
+stock bool CheckForLOS(int ent, int mask, DataPack data)
 {
+  data.Reset();
+
+  int target = data.ReadCell();
   if (ent != target)
   {
     return false;
@@ -210,6 +220,24 @@ stock bool CheckForLOS(int ent, int mask, int target)
   {
     Handle extraTrace = TR_ClipCurrentRayToEntityEx(MASK_SHOT, TargetIndices[PEANUT][PROP_INDEX]);
 
+    if (TR_DidHit(extraTrace))
+    {
+      delete extraTrace;
+      return false;
+    }
+
+    delete extraTrace;
+  }
+
+  int client = data.ReadCell();
+  for (int i = 1; i < MaxClients; i++)
+  {
+    if (i == client || !IsClientConnected(i) || GetClientTeam(i) != 2 || !IsPlayerAlive(i))
+    {
+      continue;
+    }
+
+    Handle extraTrace = TR_ClipCurrentRayToEntityEx(MASK_SHOT, i);
     if (TR_DidHit(extraTrace))
     {
       delete extraTrace;
