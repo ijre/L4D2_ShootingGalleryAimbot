@@ -104,22 +104,20 @@ static void FindTargetIndicies()
   ent = -1;
   while ((ent = FindEntityByClassname(ent, "prop_dynamic")) != -1)
   {
-    char model[55];
-    GetEntPropString(ent, Prop_Data, "m_ModelName", model, sizeof(model));
-    if (StrContains(model, "gallery_target") == -1)
-    {
-      continue;
-    }
+    char tName[16];
+    GetEntPropString(ent, Prop_Data, "m_iName", tName, sizeof(tName));
 
-    if (StrContains(model, "lilpeanut.mdl") != -1)
+    if (!strncmp(tName, "peanut_target_1", 15))
     {
       TargetIndices[PEANUT][PROP_INDEX] = ent;
+      TargetIndices[PEANUT][ROTATOR_INDEX] = GetEntPropEnt(ent, Prop_Data, "m_pParent"); // John Valve invents world's first Pandle value
     }
-    else if (StrContains(model, "moustachio.mdl") != -1)
+    else if (!strncmp(tName, "green_target_1", 14))
     {
       TargetIndices[MOUSTACHIO][PROP_INDEX] = ent;
+      TargetIndices[MOUSTACHIO][ROTATOR_INDEX] = GetEntPropEnt(ent, Prop_Data, "m_pParent");
     }
-    else if (StrContains(model, "skeleton.mdl") != -1)
+    else if (!strncmp(tName, "red_target_", 11) || !strncmp(tName, "blue_target_", 12))
     {
       static int skeleDex = MOUSTACHIO + 1;
 
@@ -128,48 +126,8 @@ static void FindTargetIndicies()
         skeleDex = MOUSTACHIO + 1;
       }
 
-      TargetIndices[skeleDex++][PROP_INDEX] = ent;
-    }
-  }
-
-  ent = -1;
-  while ((ent = FindEntityByClassname(ent, "func_rot_button")) != -1)
-  {
-    char targetName[25];
-    GetEntPropString(ent, Prop_Data, "m_iName", targetName, sizeof(targetName));
-
-    if (!strncmp(targetName, "peanut_target_1_rotator", 23))
-    {
-      TargetIndices[PEANUT][ROTATOR_INDEX] = ent;
-    }
-    else if (!strncmp(targetName, "green_target_1_rotator", 22))
-    {
-      TargetIndices[MOUSTACHIO][ROTATOR_INDEX] = ent;
-    }
-    else
-    {
-      for (int i = 1; i <= 3; i++)
-      {
-        char galleryTarget[192] = "_target_%d_rotator";
-        Format(galleryTarget, sizeof(galleryTarget), galleryTarget, i);
-
-        if (StrContains(targetName, galleryTarget) == -1)
-        {
-          continue;
-        }
-
-        ReplaceString(galleryTarget, sizeof(galleryTarget), "_rotator", "");
-
-        for (int target = MOUSTACHIO + 1; target < TARGETS_TOTAL; target++)
-        {
-          GetEntPropString(TargetIndices[target][PROP_INDEX], Prop_Data, "m_iName", targetName, sizeof(targetName));
-          if (StrContains(targetName, galleryTarget) != -1 && !TargetIndices[target][ROTATOR_INDEX])
-          {
-            TargetIndices[target][ROTATOR_INDEX] = ent;
-            break;
-          }
-        }
-      }
+      TargetIndices[skeleDex][PROP_INDEX] = ent;
+      TargetIndices[skeleDex++][ROTATOR_INDEX] = GetEntPropEnt(ent, Prop_Data, "m_pParent");
     }
   }
 }
